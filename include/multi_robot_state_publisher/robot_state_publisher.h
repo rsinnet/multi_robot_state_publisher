@@ -34,8 +34,11 @@
 
 /* Author: Wim Meeussen */
 
-#ifndef ROBOT_STATE_PUBLISHER_H
-#define ROBOT_STATE_PUBLISHER_H
+#ifndef MULTI_ROBOT_STATE_PUBLISHER_ROBOT_STATE_PUBLISHER_H
+#define MULTI_ROBOT_STATE_PUBLISHER_ROBOT_STATE_PUBLISHER_H
+
+#include <map>
+#include <string>
 
 #include <boost/scoped_ptr.hpp>
 
@@ -47,8 +50,7 @@
 #include <tf2_ros/static_transform_broadcaster.h>
 #include <tf2_ros/transform_broadcaster.h>
 #include <urdf/model.h>
-
-namespace robot_state_publisher
+namespace multi_robot_state_publisher
 {
 class SegmentPair
 {
@@ -89,7 +91,5 @@ protected:
   tf2_ros::TransformBroadcaster tf_broadcaster_;
   tf2_ros::StaticTransformBroadcaster static_tf_broadcaster_;
 };
-
-}  // namespace robot_state_publisher
-
-#endif
+}  // namespace multi_robot_state_publisher
+#endif  // MULTI_ROBOT_STATE_PUBLISHER_ROBOT_STATE_PUBLISHER_H

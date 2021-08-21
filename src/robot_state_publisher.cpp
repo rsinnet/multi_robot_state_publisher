@@ -34,16 +34,18 @@
 
 /* Author: Wim Meeussen */
 
-#include "robot_state_publisher/robot_state_publisher.h"
+#include "multi_robot_state_publisher/robot_state_publisher.h"
+
+#include <map>
+#include <string>
+#include <vector>
 
 #include <geometry_msgs/TransformStamped.h>
 #include <kdl/frames_io.hpp>
+#include <ros/ros.h>
 #include <tf2_kdl/tf2_kdl.h>
 
-using namespace std;
-using namespace ros;
-
-namespace robot_state_publisher
+namespace multi_robot_state_publisher
 {
 RobotStatePublisher::RobotStatePublisher(const KDL::Tree& tree, const urdf::Model& model) : model_(model)
 {
@@ -86,14 +88,14 @@ void RobotStatePublisher::addChildren(const KDL::SegmentMap::const_iterator segm
 }
 
 // publish moving transforms
-void RobotStatePublisher::publishTransforms(const map<string, double>& joint_positions, const Time& time,
+void RobotStatePublisher::publishTransforms(const std::map<std::string, double>& joint_positions, const ros::Time& time,
                                             const std::string& tf_prefix)
 {
   ROS_DEBUG("Publishing transforms for moving joints");
   std::vector<geometry_msgs::TransformStamped> tf_transforms;
 
   // loop over all joints
-  for (map<string, double>::const_iterator jnt = joint_positions.begin(); jnt != joint_positions.end(); jnt++)
+  for (std::map<std::string, double>::const_iterator jnt = joint_positions.begin(); jnt != joint_positions.end(); jnt++)
   {
     std::map<std::string, SegmentPair>::const_iterator seg = segments_.find(jnt->first);
     if (seg != segments_.end())
@@ -120,7 +122,8 @@ void RobotStatePublisher::publishFixedTransforms(const std::string& tf_prefix, b
   geometry_msgs::TransformStamped tf_transform;
 
   // loop over all fixed segments
-  for (map<string, SegmentPair>::const_iterator seg = segments_fixed_.begin(); seg != segments_fixed_.end(); seg++)
+  for (std::map<std::string, SegmentPair>::const_iterator seg = segments_fixed_.begin(); seg != segments_fixed_.end();
+       seg++)
   {
     geometry_msgs::TransformStamped tf_transform = tf2::kdlToTransform(seg->second.segment.pose(0));
     tf_transform.header.stamp = ros::Time::now();
@@ -141,5 +144,4 @@ void RobotStatePublisher::publishFixedTransforms(const std::string& tf_prefix, b
     tf_broadcaster_.sendTransform(tf_transforms);
   }
 }
-
-}  // namespace robot_state_publisher
+}  // namespace multi_robot_state_publisher

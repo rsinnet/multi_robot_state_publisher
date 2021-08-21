@@ -34,25 +34,24 @@
 
 /* Author: Wim Meeussen */
 
-#ifndef JOINT_STATE_LISTENER_H
-#define JOINT_STATE_LISTENER_H
+#ifndef MULTI_ROBOT_STATE_PUBLISHER_JOINT_STATE_LISTENER_H
+#define MULTI_ROBOT_STATE_PUBLISHER_JOINT_STATE_LISTENER_H
+
+#include <map>
+#include <string>
 
 #include <kdl/tree.hpp>
 #include <ros/ros.h>
 #include <sensor_msgs/JointState.h>
 #include <urdf/model.h>
 
-#include "robot_state_publisher/robot_state_publisher.h"
+#include "multi_robot_state_publisher/robot_state_publisher.h"
 
-using namespace std;
-using namespace ros;
-using namespace KDL;
-
+namespace multi_robot_state_publisher
+{
 typedef boost::shared_ptr<sensor_msgs::JointState const> JointStateConstPtr;
 typedef std::map<std::string, urdf::JointMimicSharedPtr> MimicMap;
 
-namespace robot_state_publisher
-{
 class JointStateListener
 {
 public:
@@ -69,9 +68,9 @@ protected:
   virtual void callbackFixedJoint(const ros::TimerEvent& e);
 
   std::string tf_prefix_;
-  Duration publish_interval_;
-  robot_state_publisher::RobotStatePublisher state_publisher_;
-  Subscriber joint_state_sub_;
+  ros::Duration publish_interval_;
+  RobotStatePublisher state_publisher_;
+  ros::Subscriber joint_state_sub_;
   ros::Timer timer_;
   ros::Time last_callback_time_;
   std::map<std::string, ros::Time> last_publish_time_;
@@ -79,6 +78,6 @@ protected:
   bool use_tf_static_;
   bool ignore_timestamp_;
 };
-}  // namespace robot_state_publisher
+}  // namespace multi_robot_state_publisher
 
-#endif
+#endif  // MULTI_ROBOT_STATE_PUBLISHER_JOINT_STATE_LISTENER_H
