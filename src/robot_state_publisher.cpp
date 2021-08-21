@@ -47,7 +47,12 @@
 
 namespace multi_robot_state_publisher
 {
-RobotStatePublisher::RobotStatePublisher(const KDL::Tree& tree, const urdf::Model& model) : model_(model)
+RobotStatePublisher::RobotStatePublisher(const KDL::Tree& tree, const urdf::Model& model,
+                                         std::shared_ptr<tf2_ros::TransformBroadcaster> tf_broadcaster,
+                                         std::shared_ptr<tf2_ros::StaticTransformBroadcaster> static_tf_broadcaster)
+  : model_(model)
+  , tf_broadcaster_{ std::move(tf_broadcaster) }
+  , static_tf_broadcaster_{ std::move(static_tf_broadcaster) }
 {
   // walk the tree and add segments to segments_
   addChildren(tree.getRootSegment());
@@ -111,7 +116,7 @@ void RobotStatePublisher::publishTransforms(const std::map<std::string, double>&
       ROS_WARN_THROTTLE(10, "Joint state with name: \"%s\" was received but not found in URDF", jnt->first.c_str());
     }
   }
-  tf_broadcaster_.sendTransform(tf_transforms);
+  tf_broadcaster_->sendTransform(tf_transforms);
 }
 
 // publish fixed transforms
@@ -137,11 +142,11 @@ void RobotStatePublisher::publishFixedTransforms(const std::string& tf_prefix, b
   }
   if (use_tf_static)
   {
-    static_tf_broadcaster_.sendTransform(tf_transforms);
+    static_tf_broadcaster_->sendTransform(tf_transforms);
   }
   else
   {
-    tf_broadcaster_.sendTransform(tf_transforms);
+    tf_broadcaster_->sendTransform(tf_transforms);
   }
 }
 }  // namespace multi_robot_state_publisher

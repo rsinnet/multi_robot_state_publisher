@@ -38,6 +38,7 @@
 #define MULTI_ROBOT_STATE_PUBLISHER_ROBOT_STATE_PUBLISHER_H
 
 #include <map>
+#include <memory>
 #include <string>
 
 #include <boost/scoped_ptr.hpp>
@@ -70,7 +71,9 @@ public:
   /** Constructor
    * \param tree The kinematic model of a robot, represented by a KDL Tree
    */
-  RobotStatePublisher(const KDL::Tree& tree, const urdf::Model& model = urdf::Model());
+  RobotStatePublisher(const KDL::Tree& tree, const urdf::Model& model = urdf::Model(),
+                      std::shared_ptr<tf2_ros::TransformBroadcaster> tf_broadcaster = {},
+                      std::shared_ptr<tf2_ros::StaticTransformBroadcaster> tf_static_broadcaster = {});
 
   /// Destructor
   ~RobotStatePublisher(){};
@@ -88,8 +91,8 @@ protected:
 
   std::map<std::string, SegmentPair> segments_, segments_fixed_;
   const urdf::Model& model_;
-  tf2_ros::TransformBroadcaster tf_broadcaster_;
-  tf2_ros::StaticTransformBroadcaster static_tf_broadcaster_;
+  std::shared_ptr<tf2_ros::TransformBroadcaster> tf_broadcaster_;
+  std::shared_ptr<tf2_ros::StaticTransformBroadcaster> static_tf_broadcaster_;
 };
 }  // namespace multi_robot_state_publisher
 #endif  // MULTI_ROBOT_STATE_PUBLISHER_ROBOT_STATE_PUBLISHER_H

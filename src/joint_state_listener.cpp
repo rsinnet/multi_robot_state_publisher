@@ -39,53 +39,101 @@
 #include <map>
 #include <string>
 
+#include <kdl/frames_io.hpp>
 #include <kdl/tree.hpp>
+#include <kdl_parser/kdl_parser.hpp>
 #include <ros/ros.h>
+#include <tf2_kdl/tf2_kdl.h>
+#include <tf2_ros/transform_broadcaster.h>
 #include <urdf/model.h>
 
 #include "multi_robot_state_publisher/robot_state_publisher.h"
 
 namespace multi_robot_state_publisher
 {
-JointStateListener::JointStateListener(const KDL::Tree& tree, const MimicMap& m, const urdf::Model& model)
-  : state_publisher_(tree, model), mimic_(m)
-{
-  ros::NodeHandle n_tilde("~");
-  ros::NodeHandle n;
+JointStateListener::JointStateListener(std::shared_ptr<tf2_ros::TransformBroadcaster> tf_broadcaster,
+                                       std::shared_ptr<tf2_ros::StaticTransformBroadcaster> static_tf_broadcaster,
+                                       ros::NodeHandle nh, ros::NodeHandle np)
+  : JointStateListener{ [tf_broadcaster{ tf_broadcaster }, static_tf_broadcaster{ static_tf_broadcaster },
+                         nh{ std::move(nh) }, np{ std::move(np) }]() {
+    urdf::Model model;
+    if (!model.initParam("robot_description"))
+    {
+      throw;
+    }
+    KDL::Tree tree;
+    if (!kdl_parser::treeFromUrdfModel(model, tree))
+    {
+      ROS_ERROR("Failed to extract KDL Tree from URDF.");
+      throw;
+    }
 
+    MimicMap mimic;
+
+    for (const auto& [name, joint] : model.joints_)
+      if (joint->mimic)
+      {
+        mimic.insert(make_pair(name, joint->mimic));
+      }
+
+    JointStateListener listener{ std::move(tf_broadcaster),
+                                 std::move(static_tf_broadcaster),
+                                 std::move(tree),
+                                 std::move(mimic),
+                                 std::move(model),
+                                 std::move(nh),
+                                 std::move(np) };
+    return listener;
+  }() }
+{
+}
+
+JointStateListener::JointStateListener(std::shared_ptr<tf2_ros::TransformBroadcaster> tf_broadcaster,
+                                       std::shared_ptr<tf2_ros::StaticTransformBroadcaster> static_tf_broadcaster,
+                                       KDL::Tree tree, MimicMap mimic_map, urdf::Model model, ros::NodeHandle nh,
+                                       ros::NodeHandle np)
+  : state_publisher_{ std::move(tree), std::move(model), std::move(tf_broadcaster), std::move(static_tf_broadcaster) }
+  , mimic_{ std::move(mimic_map) }
+{
   // set publish frequency
   double publish_freq;
-  n_tilde.param("publish_frequency", publish_freq, 50.0);
+  np.param("publish_frequency", publish_freq, 50.0);
   // set whether to use the /tf_static latched static transform broadcaster
-  n_tilde.param("use_tf_static", use_tf_static_, true);
+  np.param("use_tf_static", use_tf_static_, true);
   // ignore_timestamp_ == true, joins_states messages are accepted, no matter their timestamp
-  n_tilde.param("ignore_timestamp", ignore_timestamp_, false);
+  np.param("ignore_timestamp", ignore_timestamp_, false);
   // get the tf_prefix parameter from the closest namespace
   std::string tf_prefix_key;
-  n_tilde.searchParam("tf_prefix", tf_prefix_key);
-  n_tilde.param(tf_prefix_key, tf_prefix_, std::string(""));
+  np.searchParam("tf_prefix", tf_prefix_key);
+  np.param(tf_prefix_key, tf_prefix_, std::string{ "" });
   publish_interval_ = ros::Duration(1.0 / std::max(publish_freq, 1.0));
+
+  ROS_INFO_STREAM("Configuring JointStateListener:\n\tPublish Frequency: " << std::setprecision(1) << publish_freq
+                                                                           << "\n\tStatic TF: " << std::boolalpha
+                                                                           << this->use_tf_static_);
 
   // Setting tcpNoNelay tells the subscriber to ask publishers that connect
   // to set TCP_NODELAY on their side. This prevents some joint_state messages
   // from being bundled together, increasing the latency of one of the messages.
-  ros::TransportHints transport_hints;
-  transport_hints.tcpNoDelay(true);
-  // subscribe to joint state
-  joint_state_sub_ = n.subscribe("joint_states", 1, &JointStateListener::callbackJointState, this, transport_hints);
 
-  // trigger to publish fixed joints
-  // if using static transform broadcaster, this will be a oneshot trigger and only run once
-  timer_ = n_tilde.createTimer(publish_interval_, &JointStateListener::callbackFixedJoint, this, use_tf_static_);
+  if (use_tf_static_)
+  {
+    timer_ = np.createTimer(publish_interval_, &JointStateListener::callbackFixedJoint, this, use_tf_static_);
+  }
+  else
+  {
+    ros::TransportHints transport_hints;
+    transport_hints.tcpNoDelay(true);
+    // subscribe to joint state
+    joint_state_sub_ = nh.subscribe("joint_states", 1, &JointStateListener::callbackJointState, this, transport_hints);
+  }
 }
-
 JointStateListener::~JointStateListener()
 {
 }
 
-void JointStateListener::callbackFixedJoint(const ros::TimerEvent& e)
+void JointStateListener::callbackFixedJoint(const ros::TimerEvent&)
 {
-  (void)e;
   state_publisher_.publishFixedTransforms(tf_prefix_, use_tf_static_);
 }
 
@@ -114,7 +162,7 @@ void JointStateListener::callbackJointState(const JointStateConstPtr& state)
   if (last_callback_time_ > now)
   {
     // force re-publish of joint transforms
-    ROS_WARN("Moved backwards in time (probably because ROS clock was reset), re-publishing joint transforms!");
+    ROS_WARN("Moved backwards in time probably because ROS clock was reset), re-publishing joint transforms!");
     last_publish_time_.clear();
   }
   ros::Duration warning_threshold(30.0);

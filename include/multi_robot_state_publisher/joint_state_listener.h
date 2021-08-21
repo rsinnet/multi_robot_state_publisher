@@ -40,6 +40,8 @@
 #include <map>
 #include <string>
 
+#include <boost/shared_ptr.hpp>
+
 #include <kdl/tree.hpp>
 #include <ros/ros.h>
 #include <sensor_msgs/JointState.h>
@@ -55,17 +57,19 @@ typedef std::map<std::string, urdf::JointMimicSharedPtr> MimicMap;
 class JointStateListener
 {
 public:
-  /** Constructor
-   * \param tree The kinematic model of a robot, represented by a KDL Tree
-   */
-  JointStateListener(const KDL::Tree& tree, const MimicMap& m, const urdf::Model& model = urdf::Model());
+  JointStateListener(std::shared_ptr<tf2_ros::TransformBroadcaster> tf_broadcaster,
+                     std::shared_ptr<tf2_ros::StaticTransformBroadcaster> static_tf_broadcaster,
+                     ros::NodeHandle nh = {}, ros::NodeHandle np = { "~" });
 
-  /// Destructor
+  JointStateListener(std::shared_ptr<tf2_ros::TransformBroadcaster> tf_broadcaster,
+                     std::shared_ptr<tf2_ros::StaticTransformBroadcaster> static_tf_broadcaster, KDL::Tree tree,
+                     MimicMap m, urdf::Model model = {}, ros::NodeHandle nh = {}, ros::NodeHandle np = { "~" });
+
   ~JointStateListener();
 
 protected:
   virtual void callbackJointState(const JointStateConstPtr& state);
-  virtual void callbackFixedJoint(const ros::TimerEvent& e);
+  virtual void callbackFixedJoint(const ros::TimerEvent& event);
 
   std::string tf_prefix_;
   ros::Duration publish_interval_;
@@ -77,6 +81,10 @@ protected:
   MimicMap mimic_;
   bool use_tf_static_;
   bool ignore_timestamp_;
+
+private:
+  ros::NodeHandle nh_;
+  ros::NodeHandle np_;
 };
 }  // namespace multi_robot_state_publisher
 
