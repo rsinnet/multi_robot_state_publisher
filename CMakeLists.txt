@@ -27,7 +27,7 @@ find_package(Eigen3 REQUIRED)
 find_package(urdfdom_headers REQUIRED)
 
 catkin_package(
-  LIBRARIES ${PROJECT_NAME}_solver
+  LIBRARIES ${PROJECT_NAME}
   INCLUDE_DIRS include
   DEPENDS roscpp
           rosconsole
@@ -51,32 +51,25 @@ include_directories(
   )
 link_directories(${orocos_kdl_LIBRARY_DIRS})
 
-add_library(${PROJECT_NAME}_solver src/robot_state_publisher.cpp)
+add_library(
+  ${PROJECT_NAME}
+  src/joint_state_listener.cpp
+  src/robot_state_publisher.cpp
+  )
 target_link_libraries(
-  ${PROJECT_NAME}_solver
+  ${PROJECT_NAME}
   ${catkin_LIBRARIES}
   ${orocos_kdl_LIBRARIES}
   )
-
-add_library(joint_state_listener src/joint_state_listener.cpp)
-target_link_libraries(
-  joint_state_listener
-  ${PROJECT_NAME}_solver
-  ${orocos_kdl_LIBRARIES}
-  )
-
-add_executable(${PROJECT_NAME} src/joint_state_listener.cpp)
-target_link_libraries(
+add_dependencies(
   ${PROJECT_NAME}
-  ${PROJECT_NAME}_solver
-  ${orocos_kdl_LIBRARIES}
+  ${catkin_EXPORTED_TARGETS}
   )
 
-# compile the same executable using the old name as well
-add_executable(state_publisher src/joint_state_listener.cpp)
+add_executable(${PROJECT_NAME}_node src/multi_robot_state_publisher_node.cpp)
 target_link_libraries(
-  state_publisher
-  ${PROJECT_NAME}_solver
+  ${PROJECT_NAME}_node
+  ${PROJECT_NAME}
   ${orocos_kdl_LIBRARIES}
   )
 
@@ -94,7 +87,7 @@ if(CATKIN_ENABLE_TESTING)
   target_link_libraries(
     test_one_link
     ${catkin_LIBRARIES}
-    ${PROJECT_NAME}_solver
+    ${PROJECT_NAME}
     )
 
   add_rostest_gtest(
@@ -105,7 +98,7 @@ if(CATKIN_ENABLE_TESTING)
   target_link_libraries(
     test_two_links_fixed_joint
     ${catkin_LIBRARIES}
-    ${PROJECT_NAME}_solver
+    ${PROJECT_NAME}
     )
 
   add_rostest_gtest(
@@ -116,7 +109,7 @@ if(CATKIN_ENABLE_TESTING)
   target_link_libraries(
     test_two_links_moving_joint
     ${catkin_LIBRARIES}
-    ${PROJECT_NAME}_solver
+    ${PROJECT_NAME}
     )
 
   # Download needed data file
@@ -139,7 +132,7 @@ if(CATKIN_ENABLE_TESTING)
   target_link_libraries(
     test_joint_states_bag
     ${catkin_LIBRARIES}
-    ${PROJECT_NAME}_solver
+    ${PROJECT_NAME}
     )
 
   add_rostest_gtest(
@@ -150,7 +143,7 @@ if(CATKIN_ENABLE_TESTING)
   target_link_libraries(
     test_subclass
     ${catkin_LIBRARIES}
-    ${PROJECT_NAME}_solver
+    ${PROJECT_NAME}
     joint_state_listener
     )
 
@@ -165,10 +158,8 @@ if(CATKIN_ENABLE_TESTING)
 endif()
 
 install(
-  TARGETS ${PROJECT_NAME}_solver
-          joint_state_listener
-          ${PROJECT_NAME}
-          state_publisher
+  TARGETS ${PROJECT_NAME}
+          multi_robot_state_publisher_node
   ARCHIVE DESTINATION ${CATKIN_PACKAGE_LIB_DESTINATION}
   LIBRARY DESTINATION ${CATKIN_PACKAGE_LIB_DESTINATION}
   RUNTIME DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION}
