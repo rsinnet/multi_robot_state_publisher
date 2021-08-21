@@ -1,7 +1,14 @@
-cmake_minimum_required(VERSION 2.8)
-project(robot_state_publisher)
+cmake_minimum_required(VERSION 3.5)
+project(multi_robot_state_publisher)
 
-set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++11 -Wall -Wextra")
+add_definitions(
+  -std=c++17
+  -W
+  -Wall
+  -Wextra
+  -Wno-ignored-attributes
+  -Wno-int-in-bool-context
+  )
 
 find_package(orocos_kdl REQUIRED)
 find_package(
