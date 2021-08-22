@@ -103,12 +103,7 @@ TEST_F(TestPublisher, test)
 
 int main(int argc, char** argv)
 {
-  testing::InitGoogleTest(&argc, argv);
   ros::init(argc, argv, "test_robot_state_publisher");
-
-  g_argc = argc;
-  g_argv = argv;
-  int res = RUN_ALL_TESTS();
-
-  return res;
+  ::testing::InitGoogleTest(&argc, argv);
+  return RUN_ALL_TESTS();
 }

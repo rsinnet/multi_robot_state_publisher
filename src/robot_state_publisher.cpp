@@ -47,10 +47,10 @@
 
 namespace multi_robot_state_publisher
 {
-RobotStatePublisher::RobotStatePublisher(const KDL::Tree& tree, const urdf::Model& model,
-                                         std::shared_ptr<tf2_ros::TransformBroadcaster> tf_broadcaster,
-                                         std::shared_ptr<tf2_ros::StaticTransformBroadcaster> static_tf_broadcaster)
-  : model_(model)
+RobotStatePublisher::RobotStatePublisher(std::shared_ptr<tf2_ros::TransformBroadcaster> tf_broadcaster,
+                                         std::shared_ptr<tf2_ros::StaticTransformBroadcaster> static_tf_broadcaster,
+                                         const KDL::Tree& tree, urdf::Model model)
+  : model_(std::move(model))
   , tf_broadcaster_{ std::move(tf_broadcaster) }
   , static_tf_broadcaster_{ std::move(static_tf_broadcaster) }
 {

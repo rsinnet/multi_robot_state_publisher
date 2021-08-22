@@ -79,18 +79,19 @@ TEST_F(TestPublisher, test)
 
   ROS_INFO("Creating tf listener");
   Buffer buffer;
-  TransformListener tf(buffer);
+  TransformListener tf{ buffer };
 
-  // ROS_INFO("Publishing joint state to robot state publisher");
-  /*ros::NodeHandle n;
-  ros::Publisher js_pub = n.advertise<sensor_msgs::JointState>("test_one_link/joint_states", 100);
+  ROS_INFO("Publishing joint state to robot state publisher");
+  ros::NodeHandle n;
+  ros::Publisher js_pub{ n.advertise<sensor_msgs::JointState>("test_one_link/joint_states", 100) };
   sensor_msgs::JointState js_msg;
-  for (unsigned int i=0; i<100; i++){
+  for (unsigned int i{ 0 }; i < 100; i++)
+  {
     js_msg.header.stamp = ros::Time::now();
     js_pub.publish(js_msg);
     ros::spinOnce();
-    ros::Duration(0.1).sleep();
-  }*/
+    ros::Duration{ 0.1 }.sleep();
+  }
 
   ASSERT_TRUE(buffer.canTransform("link1", "link1", Time()));
 
@@ -100,9 +101,6 @@ TEST_F(TestPublisher, test)
 int main(int argc, char** argv)
 {
   ros::init(argc, argv, "test_one_link");
-  testing::InitGoogleTest(&argc, argv);
-
-  int res = RUN_ALL_TESTS();
-
-  return res;
+  ::testing::InitGoogleTest(&argc, argv);
+  return RUN_ALL_TESTS();
 }

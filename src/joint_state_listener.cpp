@@ -92,7 +92,7 @@ JointStateListener::JointStateListener(std::shared_ptr<tf2_ros::TransformBroadca
                                        std::shared_ptr<tf2_ros::StaticTransformBroadcaster> static_tf_broadcaster,
                                        KDL::Tree tree, MimicMap mimic_map, urdf::Model model, ros::NodeHandle nh,
                                        ros::NodeHandle np)
-  : state_publisher_{ std::move(tree), std::move(model), std::move(tf_broadcaster), std::move(static_tf_broadcaster) }
+  : state_publisher_{ std::move(tf_broadcaster), std::move(static_tf_broadcaster), std::move(tree), std::move(model) }
   , mimic_{ std::move(mimic_map) }
 {
   // set publish frequency

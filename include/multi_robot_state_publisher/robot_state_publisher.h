@@ -71,9 +71,9 @@ public:
   /** Constructor
    * \param tree The kinematic model of a robot, represented by a KDL Tree
    */
-  RobotStatePublisher(const KDL::Tree& tree, const urdf::Model& model = urdf::Model(),
-                      std::shared_ptr<tf2_ros::TransformBroadcaster> tf_broadcaster = {},
-                      std::shared_ptr<tf2_ros::StaticTransformBroadcaster> tf_static_broadcaster = {});
+  RobotStatePublisher(std::shared_ptr<tf2_ros::TransformBroadcaster> tf_broadcaster,
+                      std::shared_ptr<tf2_ros::StaticTransformBroadcaster> tf_static_broadcaster, const KDL::Tree& tree,
+                      urdf::Model model = urdf::Model());
 
   /// Destructor
   ~RobotStatePublisher(){};
@@ -90,7 +90,7 @@ protected:
   virtual void addChildren(const KDL::SegmentMap::const_iterator segment);
 
   std::map<std::string, SegmentPair> segments_, segments_fixed_;
-  const urdf::Model& model_;
+  urdf::Model model_;
   std::shared_ptr<tf2_ros::TransformBroadcaster> tf_broadcaster_;
   std::shared_ptr<tf2_ros::StaticTransformBroadcaster> static_tf_broadcaster_;
 };

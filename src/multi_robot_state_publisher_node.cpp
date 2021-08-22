@@ -41,8 +41,8 @@
 int main(int argc, char** argv)
 {
   ros::init(argc, argv, "multi_robot_state_publisher");
-  std::shared_ptr<tf2_ros::TransformBroadcaster> tf_broadcaster;
-  std::shared_ptr<tf2_ros::StaticTransformBroadcaster> static_tf_broadcaster;
+  auto tf_broadcaster{ std::make_shared<tf2_ros::TransformBroadcaster>() };
+  auto static_tf_broadcaster{ std::make_shared<tf2_ros::StaticTransformBroadcaster>() };
 
   multi_robot_state_publisher::JointStateListener state_publisher{ tf_broadcaster, static_tf_broadcaster };
   ros::spin();

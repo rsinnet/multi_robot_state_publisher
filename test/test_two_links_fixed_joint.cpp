@@ -101,10 +101,7 @@ TEST_F(TestPublisher, test)
 
 int main(int argc, char** argv)
 {
-  testing::InitGoogleTest(&argc, argv);
   ros::init(argc, argv, "test_two_links_fixed_joint");
-
-  int res = RUN_ALL_TESTS();
-
-  return res;
+  ::testing::InitGoogleTest(&argc, argv);
+  return RUN_ALL_TESTS();
 }

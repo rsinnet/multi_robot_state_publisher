@@ -55,8 +55,8 @@ class AccessibleJointStateListener : public JointStateListener
 public:
   AccessibleJointStateListener(std::shared_ptr<tf2_ros::TransformBroadcaster> tf_broadcaster,
                                std::shared_ptr<tf2_ros::StaticTransformBroadcaster> static_tf_broadcaster,
-                               const KDL::Tree& tree, const MimicMap& m, const urdf::Model& model)
-    : JointStateListener(tf_broadcaster, static_tf_broadcaster, tree, m, model)
+                               const KDL::Tree& tree, MimicMap mimic_map, urdf::Model model)
+    : JointStateListener{ tf_broadcaster, static_tf_broadcaster, tree, std::move(mimic_map), std::move(model) }
   {
   }
 
@@ -71,8 +71,9 @@ class AccessibleRobotStatePublisher : public multi_robot_state_publisher::RobotS
 public:
   AccessibleRobotStatePublisher(std::shared_ptr<tf2_ros::TransformBroadcaster> tf_broadcaster,
                                 std::shared_ptr<tf2_ros::StaticTransformBroadcaster> static_tf_broadcaster,
-                                const KDL::Tree& tree, const urdf::Model& model)
-    : multi_robot_state_publisher::RobotStatePublisher{ tf_broadcaster, static_tf_broadcaster, tree, model }
+                                const KDL::Tree& tree, urdf::Model model)
+    : multi_robot_state_publisher::RobotStatePublisher{ tf_broadcaster, static_tf_broadcaster, std::move(tree),
+                                                        std::move(model) }
   {
   }
 
@@ -85,6 +86,8 @@ public:
 
 TEST(TestRobotStatePubSubclass, robot_state_pub_subclass)
 {
+  auto tf_broadcaster{ std::make_shared<tf2_ros::TransformBroadcaster>() };
+  auto static_tf_broadcaster{ std::make_shared<tf2_ros::StaticTransformBroadcaster>() };
   urdf::Model model;
   model.initParam("robot_description");
   KDL::Tree tree;
@@ -96,7 +99,7 @@ TEST(TestRobotStatePubSubclass, robot_state_pub_subclass)
 
   MimicMap mimic;
 
-  for (const auto& [name, joint] : model)
+  for (const auto& [name, joint] : model.joints_)
   {
     if (joint->mimic)
     {
@@ -104,21 +107,19 @@ TEST(TestRobotStatePubSubclass, robot_state_pub_subclass)
     }
   }
 
-  robot_state_publisher_test::AccessibleRobotStatePublisher state_pub(tree, model);
-
+  multi_robot_state_publisher_test::AccessibleRobotStatePublisher state_pub{ tf_broadcaster, static_tf_broadcaster,
+                                                                             tree, model };
   EXPECT_EQ(model.name_, state_pub.getModel().name_);
   EXPECT_EQ(model.root_link_, state_pub.getModel().root_link_);
 
-  robot_state_publisher_test::AccessibleJointStateListener state_listener{ tree, mimic, model };
+  multi_robot_state_publisher_test::AccessibleJointStateListener state_listener{ tf_broadcaster, static_tf_broadcaster,
+                                                                                 tree, mimic, model };
   EXPECT_TRUE(state_listener.usingTfStatic());
 }
 
 int main(int argc, char** argv)
 {
   ros::init(argc, argv, "test_subclass");
-  testing::InitGoogleTest(&argc, argv);
-
-  int res = RUN_ALL_TESTS();
-
-  return res;
+  ::testing::InitGoogleTest(&argc, argv);
+  return RUN_ALL_TESTS();
 }
