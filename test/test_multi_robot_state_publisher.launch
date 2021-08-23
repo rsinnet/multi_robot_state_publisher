@@ -1,0 +1,8 @@
+<?xml version="1.0"?>
+<launch xmlns:xs="http://www.w3.org/2001/XMLSchema"
+  xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="https://gist.githubusercontent.com/nalt/dfa2abc9d2e3ae4feb82ca5608090387/raw/roslaunch.xsd">
+  <node name="multi_robot_state_publisher" pkg="multi_robot_state_publisher" type="multi_robot_state_publisher_node" output="screen">
+    <param name="robots/my_robot_1/robot_description" textfile="$(find multi_robot_state_publisher)/test/one_link.urdf" />
+    <param name="robots/pr2/robot_description" textfile="$(find multi_robot_state_publisher)/test/pr2.urdf" />
+  </node>
+</launch>

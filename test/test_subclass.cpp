@@ -35,6 +35,7 @@
 #include <map>
 #include <memory>
 #include <string>
+#include <utility>
 
 #include <kdl_parser/kdl_parser.hpp>
 #include <tf2_ros/static_transform_broadcaster.h>
@@ -103,7 +104,7 @@ TEST(TestRobotStatePubSubclass, robot_state_pub_subclass)
   {
     if (joint->mimic)
     {
-      mimic.insert(make_pair(name, joint->mimic));
+      mimic.insert(std::make_pair(name, joint->mimic));
     }
   }
 

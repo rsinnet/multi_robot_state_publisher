@@ -39,9 +39,11 @@
 
 #include <map>
 #include <string>
+#include <vector>
 
 #include <boost/shared_ptr.hpp>
 
+#include <geometry_msgs/TransformStamped.h>
 #include <kdl/tree.hpp>
 #include <ros/ros.h>
 #include <sensor_msgs/JointState.h>
@@ -57,34 +59,46 @@ typedef std::map<std::string, urdf::JointMimicSharedPtr> MimicMap;
 class JointStateListener
 {
 public:
-  JointStateListener(std::shared_ptr<tf2_ros::TransformBroadcaster> tf_broadcaster,
-                     std::shared_ptr<tf2_ros::StaticTransformBroadcaster> static_tf_broadcaster,
-                     ros::NodeHandle nh = {}, ros::NodeHandle np = { "~" });
-
-  JointStateListener(std::shared_ptr<tf2_ros::TransformBroadcaster> tf_broadcaster,
-                     std::shared_ptr<tf2_ros::StaticTransformBroadcaster> static_tf_broadcaster, KDL::Tree tree,
-                     MimicMap m, urdf::Model model = {}, ros::NodeHandle nh = {}, ros::NodeHandle np = { "~" });
-
+  JointStateListener(urdf::Model model, ros::NodeHandle nh = {}, ros::NodeHandle np = { "~" });
+  explicit JointStateListener(ros::NodeHandle nh = {}, ros::NodeHandle np = { "~" });
   ~JointStateListener();
+
+  inline constexpr const RobotStatePublisher& getRobotStatePublisher() const
+  {
+    return this->state_publisher_;
+  }
+
+  //! \brief Return true if configured to use tf_static.
+  [[nodiscard]] inline bool isStatic() const
+  {
+    return use_tf_static_;
+  }
+
+  void getTransforms(const ros::Time& time, std::vector<geometry_msgs::TransformStamped>* destination);
 
 protected:
   virtual void callbackJointState(const JointStateConstPtr& state);
-  virtual void callbackFixedJoint(const ros::TimerEvent& event);
+
+  ros::NodeHandle nh_;
+  ros::NodeHandle np_;
+  urdf::Model model_;
+  MimicMap mimic_;
 
   std::string tf_prefix_;
   ros::Duration publish_interval_;
   RobotStatePublisher state_publisher_;
   ros::Subscriber joint_state_sub_;
-  ros::Timer timer_;
   ros::Time last_callback_time_;
   std::map<std::string, ros::Time> last_publish_time_;
-  MimicMap mimic_;
   bool use_tf_static_;
   bool ignore_timestamp_;
+  bool tcp_nodelay_;
 
 private:
-  ros::NodeHandle nh_;
-  ros::NodeHandle np_;
+  std::map<std::string, double> joint_positions_;
+
+  [[nodiscard]] static urdf::Model loadModelFromROS(const ros::NodeHandle& np);
+  [[nodiscard]] static MimicMap buildMimicMap(const urdf::Model& model);
 };
 }  // namespace multi_robot_state_publisher
 

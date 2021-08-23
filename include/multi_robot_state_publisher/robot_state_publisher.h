@@ -1,3 +1,4 @@
+
 /*********************************************************************
  * Software License Agreement (BSD License)
  *
@@ -37,62 +38,60 @@
 #ifndef MULTI_ROBOT_STATE_PUBLISHER_ROBOT_STATE_PUBLISHER_H
 #define MULTI_ROBOT_STATE_PUBLISHER_ROBOT_STATE_PUBLISHER_H
 
+#include <iterator>
 #include <map>
 #include <memory>
 #include <string>
+#include <vector>
 
 #include <boost/scoped_ptr.hpp>
 
+#include <geometry_msgs/TransformStamped.h>
 #include <kdl/frames.hpp>
 #include <kdl/segment.hpp>
 #include <kdl/tree.hpp>
 #include <ros/ros.h>
 #include <tf/tf.h>
-#include <tf2_ros/static_transform_broadcaster.h>
-#include <tf2_ros/transform_broadcaster.h>
 #include <urdf/model.h>
 namespace multi_robot_state_publisher
 {
-class SegmentPair
-{
-public:
-  SegmentPair(const KDL::Segment& p_segment, const std::string& p_root, const std::string& p_tip)
-    : segment(p_segment), root(p_root), tip(p_tip)
-  {
-  }
-
-  KDL::Segment segment;
-  std::string root, tip;
-};
-
 class RobotStatePublisher
 {
-public:
-  /** Constructor
-   * \param tree The kinematic model of a robot, represented by a KDL Tree
-   */
-  RobotStatePublisher(std::shared_ptr<tf2_ros::TransformBroadcaster> tf_broadcaster,
-                      std::shared_ptr<tf2_ros::StaticTransformBroadcaster> tf_static_broadcaster, const KDL::Tree& tree,
-                      urdf::Model model = urdf::Model());
+  class SegmentPair
+  {
+  public:
+    inline SegmentPair(const KDL::Segment& p_segment, const std::string& p_root, const std::string& p_tip)
+      : segment{ p_segment }, root{ p_root }, tip{ p_tip }
+    {
+    }
 
-  /// Destructor
+    KDL::Segment segment;
+    std::string root, tip;
+  };
+
+public:
+  explicit RobotStatePublisher(urdf::Model* model);
+
   ~RobotStatePublisher(){};
 
-  /** Publish transforms to tf
-   * \param joint_positions A map of joint names and joint positions.
-   * \param time The time at which the joint positions were recorded
-   */
-  virtual void publishTransforms(const std::map<std::string, double>& joint_positions, const ros::Time& time,
-                                 const std::string& tf_prefix);
-  virtual void publishFixedTransforms(const std::string& tf_prefix, bool use_tf_static = false);
+  void getFixedTransforms(const std::string& tf_prefix, const ros::Time& time,
+                          std::vector<geometry_msgs::TransformStamped>* destination) const;
+
+  void getTransforms(const std::map<std::string, double>& joint_positions, const std::string& tf_prefix,
+                     const ros::Time& time, std::vector<geometry_msgs::TransformStamped>* destination);
 
 protected:
   virtual void addChildren(const KDL::SegmentMap::const_iterator segment);
 
   std::map<std::string, SegmentPair> segments_, segments_fixed_;
-  urdf::Model model_;
-  std::shared_ptr<tf2_ros::TransformBroadcaster> tf_broadcaster_;
-  std::shared_ptr<tf2_ros::StaticTransformBroadcaster> static_tf_broadcaster_;
+  urdf::Model& model_;
+
+private:
+  // Reusable memory.
+  mutable std::vector<geometry_msgs::TransformStamped> tf_transforms_;
+
+  static geometry_msgs::TransformStamped getTransform(const SegmentPair& pair, const KDL::Frame& frame,
+                                                      const std::string& tf_prefix, const ros::Time& time);
 };
 }  // namespace multi_robot_state_publisher
 #endif  // MULTI_ROBOT_STATE_PUBLISHER_ROBOT_STATE_PUBLISHER_H
