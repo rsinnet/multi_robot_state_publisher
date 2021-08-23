@@ -82,15 +82,15 @@ JointStateListener::JointStateListener(urdf::Model model, ros::NodeHandle nh, ro
   this->np_.param(tf_prefix_key, tf_prefix_, std::string{ "" });
   this->publish_interval_ = ros::Duration{ 1.0 / std::max(publish_freq, 1.0) };
 
-  ROS_INFO_STREAM(std::boolalpha                                           //
-                  << std::setprecision(1)                                  //
-                  << "Configuring JointStateListener:"                     //
-                  << "\n\tNamespace:        " << this->np_.getNamespace()  //
-                  << "\n\tModel Name:       " << this->model_.getName()    //
-                  << "\n\tPublish Rate:     " << publish_freq << " Hz"     //
-                  << "\n\tStatic TF:        " << this->use_tf_static_      //
-                  << "\n\tIgnore Timestamp: " << this->ignore_timestamp_   //
-                  << "\n\tTCP_NODELAY:      " << this->tcp_nodelay_);
+  ROS_DEBUG_STREAM(std::boolalpha                                           //
+                   << std::setprecision(1)                                  //
+                   << "Configuring JointStateListener:"                     //
+                   << "\n\tNamespace:        " << this->np_.getNamespace()  //
+                   << "\n\tModel Name:       " << this->model_.getName()    //
+                   << "\n\tPublish Rate:     " << publish_freq << " Hz"     //
+                   << "\n\tStatic TF:        " << this->use_tf_static_      //
+                   << "\n\tIgnore Timestamp: " << this->ignore_timestamp_   //
+                   << "\n\tTCP_NODELAY:      " << this->tcp_nodelay_);
 
   if (!this->use_tf_static_)
   {

@@ -60,11 +60,11 @@ public:
 
 std::vector<std::string> MultiRobotStatePublisherConfig::getRobotNamesFromROSParam()
 {
-  std::vector<std::string> objects;
+  std::vector<std::string> robots;
   XmlRpc::XmlRpcValue data;
 
   std::stringstream ss;
-  ss << "Loading robot configs from `" << CONFIG_PATH << "' for the following objects: ";
+  ss << "Loading robot configs from `" << CONFIG_PATH << "' for the following robots: ";
 
   ros::NodeHandle nh{ "~" };
   ROS_INFO_STREAM("NodeHandle namespace: " << nh.getNamespace());
@@ -74,27 +74,17 @@ std::vector<std::string> MultiRobotStatePublisherConfig::getRobotNamesFromROSPar
     static constexpr const char* msg{ "Invalid parameter `%s' found polluting namespace `%s'." };
     ROS_ASSERT_MSG(it->second.getType() == XmlRpc::XmlRpcValue::TypeStruct, msg, it->first.c_str(),
                    CONFIG_PATH.c_str());
-    objects.push_back(it->first);
-    ss << "\n  " << objects.back();
+    robots.push_back(it->first);
+    ss << "\n  " << robots.back();
   }
-  if (objects.empty())
+  if (robots.empty())
   {
-    auto msg{ "No objects loaded from param server!" };
+    auto msg{ "No robots loaded from param server!" };
     ROS_ERROR_STREAM(msg);
     throw std::invalid_argument{ msg };
   }
   ROS_INFO_STREAM(ss.str().c_str());
-  return objects;
-}
-
-template <typename T, typename>
-std::vector<T> MultiRobotStatePublisherConfig::getRobotConfigsFromROSParam()
-{
-  auto objects{ getRobotNamesFromROSParam() };
-  std::vector<T> configs;
-  std::transform(objects.cbegin(), objects.cend(), std::back_inserter(configs),
-                 [](const auto& object) { return T::fromROS(object); });
-  return configs;
+  return robots;
 }
 }  // namespace multi_robot_state_publisher
 
