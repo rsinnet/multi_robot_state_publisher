@@ -73,7 +73,9 @@ target_link_libraries(
   ${orocos_kdl_LIBRARIES}
   )
 
-add_subdirectory(test)
+# TODO(RWS): Update the tests for the refactor.
+
+# add_subdirectory(test)
 
 install(
   TARGETS ${PROJECT_NAME}
