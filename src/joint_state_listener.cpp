@@ -161,7 +161,7 @@ void JointStateListener::callbackJointState(const JointStateConstPtr& state)
   {
     // force re-publish of joint transforms
     ROS_WARN("Moved backwards in time probably because ROS clock was reset), re-publishing joint transforms!");
-    this->last_publish_time_.clear();
+    this->last_update_time_.clear();
   }
   ros::Duration warning_threshold{ 30.0 };
   if ((state->header.stamp + warning_threshold) < now)
@@ -174,7 +174,7 @@ void JointStateListener::callbackJointState(const JointStateConstPtr& state)
   auto last_published{ now };
   for (unsigned int i{ 0 }; i < state->name.size(); i++)
   {
-    auto t{ this->last_publish_time_[state->name[i]] };
+    auto t{ this->last_update_time_[state->name[i]] };
     last_published = (t < last_published) ? t : last_published;
   }
   // note: if a joint was seen for the first time,
@@ -202,7 +202,7 @@ void JointStateListener::callbackJointState(const JointStateConstPtr& state)
 
     for (const auto& name : state->name)
     {
-      this->last_publish_time_[name] = state->header.stamp;
+      this->last_update_time_[name] = state->header.stamp;
     }
   }
 }

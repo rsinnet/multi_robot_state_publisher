@@ -111,7 +111,7 @@ protected:
   RobotStatePublisher state_publisher_;
   ros::Subscriber joint_state_sub_;
   ros::Time last_callback_time_;
-  std::map<std::string, ros::Time> last_publish_time_;
+  std::map<std::string, ros::Time> last_update_time_;
   bool use_tf_static_;
   bool ignore_timestamp_;
   bool tcp_nodelay_;
