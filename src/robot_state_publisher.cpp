@@ -109,7 +109,6 @@ geometry_msgs::TransformStamped RobotStatePublisher::getTransform(const RobotSta
   return tf_transform;
 }
 
-// publish moving transforms
 void RobotStatePublisher::getTransforms(const std::map<std::string, double>& joint_positions,
                                         const std::string& tf_prefix, const ros::Time& time,
                                         std::vector<geometry_msgs::TransformStamped>* destination)

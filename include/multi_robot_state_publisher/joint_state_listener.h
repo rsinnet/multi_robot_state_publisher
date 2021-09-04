@@ -56,24 +56,46 @@ namespace multi_robot_state_publisher
 typedef boost::shared_ptr<sensor_msgs::JointState const> JointStateConstPtr;
 typedef std::map<std::string, urdf::JointMimicSharedPtr> MimicMap;
 
+//! \brief Listens to joint states for a robot to compute frames.
 class JointStateListener
 {
 public:
+  //! \brief Construct a new JointStateListener.
+  //!
+  //! \param model Model of the robot.
+  //! \param nh Handle to the public namespace.
+  //! \param np Handle to the node's private namespace.
   JointStateListener(urdf::Model model, ros::NodeHandle nh = {}, ros::NodeHandle np = { "~" });
+
+  //! \brief Construct a new JointStateListener.
+  //!
+  //! \param nh Handle to the public namespace.
+  //! \param np Handle to the node's private namespace.
   explicit JointStateListener(ros::NodeHandle nh = {}, ros::NodeHandle np = { "~" });
+
+  //! \brief Destroy the JointStateListener.
   ~JointStateListener();
 
+  //! \brief Return the associated RobotStatePublisher.
+  //!
+  //! \return The underlying RobotStatePublisher.
   inline constexpr const RobotStatePublisher& getRobotStatePublisher() const
   {
     return this->state_publisher_;
   }
 
   //! \brief Return true if configured to use tf_static.
+  //!
+  //! \brief True if configured to use tf_static.
   [[nodiscard]] inline bool isStatic() const
   {
     return use_tf_static_;
   }
 
+  //! \brief Update destination with calculated transforms.
+  //!
+  //! \param time The time at which the transforms are valid.
+  //! \param destination A place to store the calculated transforms.
   void getTransforms(const ros::Time& time, std::vector<geometry_msgs::TransformStamped>* destination);
 
 protected:

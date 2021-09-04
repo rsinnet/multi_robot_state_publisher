@@ -55,28 +55,55 @@
 #include <urdf/model.h>
 namespace multi_robot_state_publisher
 {
+//! \brief Computes robot frame data to publish to the TF tree.
 class RobotStatePublisher
 {
   class SegmentPair
   {
   public:
+    //! \brief Construct a new SegmentPair.
+    //!
+    //! \param p_segment A kinematic segment connecting p_root to p_tip.
+    //! \param p_root The root of p_segment.
+    //! \param p_tip The tip of p_segment.
     inline SegmentPair(const KDL::Segment& p_segment, const std::string& p_root, const std::string& p_tip)
       : segment{ p_segment }, root{ p_root }, tip{ p_tip }
     {
     }
 
+    //! \brief An associated segment.
     KDL::Segment segment;
-    std::string root, tip;
+
+    //! \brief The root frame of the segment.
+    std::string root;
+
+    //! \brief The tip frame of the segment.
+    std::string tip;
   };
 
 public:
+  //! \brief Construct a new RobotStatePublisher.
+  //!
+  //! \param model A model of a robot to publish.
   explicit RobotStatePublisher(urdf::Model* model);
 
+  //! \brief Destroy the RobotStatePublisher.
   ~RobotStatePublisher(){};
 
+  //! \brief Update destination with fixed transforms.
+  //!
+  //! \param tf_prefix A prefix for the /tf topic on the rosgraph.
+  //! \param time The time to set for the returned transforms.
+  //! \param destination A location to place the resultant transforms.
   void getFixedTransforms(const std::string& tf_prefix, const ros::Time& time,
                           std::vector<geometry_msgs::TransformStamped>* destination) const;
 
+  //! \brief Update destination with all  transforms.
+  //!
+  //! \param joint_positions Joint positions on the robot for non-static transforms.
+  //! \param tf_prefix A prefix for the /tf topic on the rosgraph.
+  //! \param time The time to set for the returned transforms.
+  //! \param destination A location to place the resultant transforms.
   void getTransforms(const std::map<std::string, double>& joint_positions, const std::string& tf_prefix,
                      const ros::Time& time, std::vector<geometry_msgs::TransformStamped>* destination);
 
